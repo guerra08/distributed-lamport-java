@@ -1,5 +1,3 @@
-import java.util.Date;
-
 public class App {
 
     public static void main(String[] args) {
@@ -7,8 +5,8 @@ public class App {
             (new Thread(new Multicast())).start();
         }
         else{
-            Node n = new Node();
-            n.multicast(new Date().toString());
+            Node n = new Node(args[1], args[2]);
+            //n.multicast(new Date().toString());
         }
     }
 
