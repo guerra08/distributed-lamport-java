@@ -13,6 +13,8 @@ public class Node implements Runnable{
     private List<Config> otherConfigs;
     private String id;
     private volatile boolean ready = false;
+    private DatagramSocket socket;
+    private Lamport lamport;
 
     public Node(String file, String id){
         this.id = id;
@@ -25,8 +27,8 @@ public class Node implements Runnable{
             Thread t = new Thread(this);
             t.start();
             byte[] message = "connection".getBytes();
-            DatagramSocket socket = new DatagramSocket();
-            InetAddress host = InetAddress.getByName("192.168.0.246");
+            socket = new DatagramSocket(config.getPort(), InetAddress.getByName("192.168.56.1"));
+            InetAddress host = InetAddress.getByName("192.168.56.1");
             DatagramPacket packet = new DatagramPacket(message, message.length, host, 6666);
             socket.send(packet);
             t.join();
@@ -46,14 +48,50 @@ public class Node implements Runnable{
             multicastSocket.receive(received);
             System.out.println(new String(received.getData(), 0, received.getLength()));
             ready = true;
+            startProcessing();
+            receivePackets();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    private void receivePackets() {
+        System.out.println("Ready to receive packets");
+
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
+                socket.setSoTimeout(1000);
+                byte[] buf = new byte[1024];
+                DatagramPacket dp = new DatagramPacket(buf, buf.length);
+                socket.receive(dp);
+                String clock = new String(dp.getData(), 0, dp.getLength());
+                lamport.updateClock(Integer.parseInt(clock.charAt(clock.length()-1)+""));
+                System.out.println(lamport.getCounter());
+                return;
+            } catch (IOException e){
+                System.out.println(e.getMessage());
+            }
+
+        }
+    }
+
     private void startProcessing(){
         if(ready){
-            System.out.println("Implements");
+            lamport = new Lamport(id);
+
+            try {
+                if (id.equals("1")) {
+                    String message = "ID: " + lamport.getId() + " Clock: " + lamport.getCounter();
+                    byte[] byteMessage = message.getBytes();
+                    InetAddress host = InetAddress.getByName("192.168.56.1");
+                    DatagramPacket packet = new DatagramPacket(byteMessage, byteMessage.length, host, 5543);
+                    socket.send(packet);
+                    System.out.println("send");
+                }
+
+            }catch (IOException e){
+            System.out.println(e.getMessage());
+            }
         }
     }
 
