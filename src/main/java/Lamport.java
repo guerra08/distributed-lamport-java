@@ -1,0 +1,29 @@
+public class Lamport {
+
+    private int counter;
+    private String id;
+
+    public Lamport(String id) {
+        this.id = id;
+        this.counter = 0;
+    }
+
+
+    public void updateLocalMessage() {
+        this.counter++;
+    }
+
+    public void updateClock(int clock) {
+        int newClock = Math.max(clock, getCounter()) + 1;
+        setCounter(newClock);
+
+    }
+
+    public int getCounter() {
+        return counter;
+    }
+
+    public void setCounter(int counter) {
+        this.counter = counter;
+    }
+}
