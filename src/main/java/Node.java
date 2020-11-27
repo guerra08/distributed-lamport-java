@@ -22,21 +22,24 @@ public class Node implements Runnable{
 
     public void start(){
         try{
-            (new Thread(this)).start();
+            Thread t = new Thread(this);
+            t.start();
             byte[] message = "connection".getBytes();
             DatagramSocket socket = new DatagramSocket();
             InetAddress host = InetAddress.getByName("192.168.0.246");
             DatagramPacket packet = new DatagramPacket(message, message.length, host, 6666);
             socket.send(packet);
-        }catch (IOException e){
+            t.join();
+            //starts processing
+            startProcessing();
+        }catch (IOException | InterruptedException e){
             System.out.println(e.getMessage());
         }
     }
 
     public void run(){
-        MulticastSocket multicastSocket = null;
         try {
-            multicastSocket = new MulticastSocket(4446);
+            MulticastSocket multicastSocket = new MulticastSocket(4446);
             multicastSocket.joinGroup(InetAddress.getByName("230.0.0.0"));
             byte[] bytes = new byte[256];
             DatagramPacket received = new DatagramPacket(bytes, bytes.length);
@@ -45,6 +48,12 @@ public class Node implements Runnable{
             ready = true;
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void startProcessing(){
+        if(ready){
+            System.out.println("Implements");
         }
     }
 
