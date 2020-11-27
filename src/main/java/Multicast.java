@@ -10,6 +10,7 @@ public class Multicast{
             channel.connect("prog-dist-cluster");
 
             System.out.println("Start distributed system: ");
+
             sc.nextLine();
 
             System.out.println("Starting...");
