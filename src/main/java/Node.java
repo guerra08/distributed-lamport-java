@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.net.*;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 public class Node{
+
     private final Config config;
     private final List<Config> otherConfigs;
     private final String id;
@@ -18,6 +20,7 @@ public class Node{
     private DatagramSocket receivingSocket;
     private DatagramSocket sendingSocket;
     private Lamport lamport;
+    private final int EVENT_COUNT = 100;
 
     public Node(String file, String id){
         this.id = id;
@@ -53,9 +56,9 @@ public class Node{
                 byte[] buf = new byte[1024];
                 DatagramPacket dp = new DatagramPacket(buf, buf.length);
                 receivingSocket.receive(dp);
-                String clock = new String(dp.getData(), 0, dp.getLength());
-                lamport.updateClock(Integer.parseInt(clock.charAt(clock.length()-1)+""));
-                System.out.println("Lamport: " + lamport.getCounter());
+                //String clock = new String(dp.getData(), 0, dp.getLength());
+                //lamport.updateClock(Integer.parseInt(clock.charAt(clock.length()-1)+""));
+                System.out.println("Received");
             } catch (IOException e){ }
         }
     }
@@ -65,18 +68,25 @@ public class Node{
             lamport = new Lamport(id);
             try {
                 if (id.equals("1")) {
-                    String message = "ID: " + lamport.getId() + " Clock: " + lamport.getCounter();
-                    byte[] byteMessage = message.getBytes();
-                    DatagramPacket packet = new DatagramPacket(byteMessage,
-                            byteMessage.length,
-                            InetAddress.getByName(otherConfigs.get(0).getHost()),
-                            otherConfigs.get(0).getPort());
-                    sendingSocket.send(packet);
+                    for (int i = 0; i < 5; i++) {
+                        String message = "ID: " + lamport.getId() + " Clock: " + lamport.getCounter();
+                        byte[] byteMessage = message.getBytes();
+                        DatagramPacket packet = new DatagramPacket(byteMessage,
+                                byteMessage.length,
+                                InetAddress.getByName(otherConfigs.get(0).getHost()),
+                                otherConfigs.get(0).getPort());
+                        sendingSocket.send(packet);
+                        System.out.println("Sending packet");
+                        Thread.sleep(getRandomLong(500, 1000));
+                    }
                 }
-            }catch (IOException e){
-                System.out.println(e.getMessage());
-            }
+            }catch (IOException | InterruptedException e){ }
         }
+    }
+
+    private long getRandomLong(int min, int max) {
+        Random random = new Random();
+        return (long) random.nextInt(max - min) + min;
     }
 
 }
