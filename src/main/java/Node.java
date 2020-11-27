@@ -1,5 +1,8 @@
 import domain.Config;
 import factory.ConfigFactory;
+import org.jgroups.JChannel;
+import org.jgroups.Message;
+import org.jgroups.Receiver;
 import util.File;
 
 import java.io.IOException;
@@ -7,7 +10,7 @@ import java.net.*;
 import java.util.List;
 import java.util.Objects;
 
-public class Node implements Runnable{
+public class Node{
     private final int sendPort = 6666;
     private Config config;
     private List<Config> otherConfigs;
@@ -24,40 +27,21 @@ public class Node implements Runnable{
 
     public void start(){
         try{
-            Thread t = new Thread(this);
-            t.start();
-            byte[] message = "connection".getBytes();
-            socket = new DatagramSocket(config.getPort(), InetAddress.getByName("192.168.56.1"));
-            InetAddress host = InetAddress.getByName("192.168.56.1");
-            DatagramPacket packet = new DatagramPacket(message, message.length, host, 6666);
-            socket.send(packet);
-            t.join();
-            //starts processing
-            startProcessing();
-        }catch (IOException | InterruptedException e){
-            System.out.println(e.getMessage());
-        }
-    }
-
-    public void run(){
-        try {
-            MulticastSocket multicastSocket = new MulticastSocket(4446);
-            multicastSocket.joinGroup(InetAddress.getByName("230.0.0.0"));
-            byte[] bytes = new byte[256];
-            DatagramPacket received = new DatagramPacket(bytes, bytes.length);
-            multicastSocket.receive(received);
-            System.out.println(new String(received.getData(), 0, received.getLength()));
-            ready = true;
-            startProcessing();
-            receivePackets();
-        } catch (IOException e) {
+            JChannel channel = new JChannel();
+            channel.connect("prog-dist-cluster");
+            channel.setReceiver(new Receiver() {
+                @Override
+                public void receive(Message msg) {
+                    startProcessing();
+                }
+            });
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void receivePackets() {
         System.out.println("Ready to receive packets");
-
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 socket.setSoTimeout(1000);
@@ -71,14 +55,13 @@ public class Node implements Runnable{
             } catch (IOException e){
                 System.out.println(e.getMessage());
             }
-
         }
     }
 
     private void startProcessing(){
-        if(ready){
+        System.out.println("START");
+        /*if(ready){
             lamport = new Lamport(id);
-
             try {
                 if (id.equals("1")) {
                     String message = "ID: " + lamport.getId() + " Clock: " + lamport.getCounter();
@@ -88,11 +71,10 @@ public class Node implements Runnable{
                     socket.send(packet);
                     System.out.println("send");
                 }
-
             }catch (IOException e){
             System.out.println(e.getMessage());
             }
-        }
+        }*/
     }
 
 }
