@@ -5,8 +5,9 @@ import factory.ConfigFactory;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.Receiver;
-import util.File;
-import util.Packet;
+import util.ConfigUtil;
+import util.FileUtil;
+import util.PacketUtil;
 
 import java.io.*;
 import java.net.*;
@@ -29,8 +30,8 @@ public class Node{
 
     public Node(String file, String id){
         this.id = id;
-        this.config = new Config(Objects.requireNonNull(File.getConfig(file, id)));
-        this.otherConfigs = ConfigFactory.buildOtherConfigsList(File.getAllConfigsFromFile(file), id);
+        this.config = new Config(Objects.requireNonNull(FileUtil.getConfig(file, id)));
+        this.otherConfigs = ConfigFactory.buildOtherConfigsList(FileUtil.getAllConfigsFromFile(file), id);
         this.lamport = new Lamport(id);
         this.events = new ArrayList<>();
     }
@@ -63,7 +64,7 @@ public class Node{
                 byte[] buf = new byte[1024];
                 DatagramPacket dp = new DatagramPacket(buf, buf.length);
                 receivingSocket.receive(dp);
-                Event receivedPacket = Packet.receivePacket(buf);
+                Event receivedPacket = PacketUtil.packetBufferToEvent(buf);
                 System.out.println(receivedPacket.getClock() + " received. Local Clock: " + lamport.getCounter());
                 lamport.updateClock(receivedPacket.getClock());
                 System.out.println("New lamport: " + lamport.getCounter());
@@ -75,19 +76,31 @@ public class Node{
         if(ready){
             try {
                 for (int i = 0; i < 5; i++) {
-                    Config randomConfig = File.getRandomConfigFromFile(otherConfigs, Integer.parseInt(id));
-                    DatagramPacket packet = Packet.createPacket(lamport, randomConfig);
-                    sendingSocket.send(packet);
-                    System.out.println("Sending packet");
-                    Thread.sleep(getRandomLong(500, 1000));
+                    if(isEventLocal()){
+                        events.add(new Event(this.lamport.getCounter(), "Local event"));
+                        this.lamport.updateClockFromLocalEvent();
+                        System.out.println("Local event");
+                        System.out.println("New lamport: " + lamport.getCounter() + "\n");
+                    }
+                    else{
+                        Config randomConfig = ConfigUtil.getRandomConfigFromList(otherConfigs, Integer.parseInt(id));
+                        DatagramPacket packet = PacketUtil.createPacket(lamport, randomConfig);
+                        sendingSocket.send(packet);
+                        System.out.println("Sending packet");
+                        Thread.sleep(getRandomLong());
+                    }
                 }
             }catch (IOException | InterruptedException e){ }
         }
     }
 
-    private long getRandomLong(int min, int max) {
+    private long getRandomLong() {
         Random random = new Random();
-        return (long) random.nextInt(max - min) + min;
+        return (long) random.nextInt(1000 - 500) + 500;
+    }
+
+    private boolean isEventLocal(){
+        return Math.random() > this.config.getChance();
     }
 
 }

@@ -10,17 +10,13 @@ public class Lamport {
         this.counter = 0;
     }
 
-    public void updateLocalMessage() {
+    public void updateClockFromLocalEvent() {
         this.counter++;
     }
 
     public void updateClock(int clock) {
         int newClock = Math.max(clock, counter) + 1;
         setCounter(newClock);
-    }
-
-    public void updateClock() {
-        counter++;
     }
 
     public int getCounter() {

@@ -8,7 +8,7 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 
-public class Packet {
+public class PacketUtil {
 
 
     public static DatagramPacket createPacket(Lamport lamp, Config config) {
@@ -29,7 +29,7 @@ public class Packet {
         return null;
     }
 
-    public static Event receivePacket(byte[] buf) {
+    public static Event packetBufferToEvent(byte[] buf) {
         try {
             ByteArrayInputStream byteStream = new ByteArrayInputStream(buf);
             ObjectInputStream is = new ObjectInputStream(new BufferedInputStream(byteStream));
