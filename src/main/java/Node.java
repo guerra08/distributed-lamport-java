@@ -1,4 +1,6 @@
+import algorithm.Lamport;
 import domain.Config;
+import domain.Event;
 import factory.ConfigFactory;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
@@ -7,6 +9,7 @@ import util.File;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -19,13 +22,16 @@ public class Node{
     private boolean ready = false;
     private DatagramSocket receivingSocket;
     private DatagramSocket sendingSocket;
-    private Lamport lamport;
+    private final Lamport lamport;
     private final int EVENT_COUNT = 100;
+    private final List<Event> events;
 
     public Node(String file, String id){
         this.id = id;
         this.config = new Config(Objects.requireNonNull(File.getConfig(file, id)));
         this.otherConfigs = ConfigFactory.buildOtherConfigsList(File.getAllConfigsFromFile(file), id);
+        this.lamport = new Lamport(id);
+        this.events = new ArrayList<>();
     }
 
     public void start(){
@@ -56,8 +62,8 @@ public class Node{
                 byte[] buf = new byte[1024];
                 DatagramPacket dp = new DatagramPacket(buf, buf.length);
                 receivingSocket.receive(dp);
-                //String clock = new String(dp.getData(), 0, dp.getLength());
-                //lamport.updateClock(Integer.parseInt(clock.charAt(clock.length()-1)+""));
+                String clock = new String(dp.getData(), 0, dp.getLength());
+                lamport.updateClock(Integer.parseInt(clock.charAt(clock.length()-1)+""));
                 System.out.println("Received");
             } catch (IOException e){ }
         }
@@ -65,7 +71,6 @@ public class Node{
 
     private void startProcessing(){
         if(ready){
-            lamport = new Lamport(id);
             try {
                 if (id.equals("1")) {
                     for (int i = 0; i < 5; i++) {

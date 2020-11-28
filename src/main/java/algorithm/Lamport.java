@@ -1,3 +1,5 @@
+package algorithm;
+
 public class Lamport {
 
     private int counter;
@@ -13,8 +15,12 @@ public class Lamport {
     }
 
     public void updateClock(int clock) {
-        int newClock = Math.max(clock, getCounter()) + 1;
+        int newClock = Math.max(clock, counter) + 1;
         setCounter(newClock);
+    }
+
+    public void updateClock() {
+        counter++;
     }
 
     public int getCounter() {
