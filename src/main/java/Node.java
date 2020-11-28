@@ -6,8 +6,9 @@ import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.Receiver;
 import util.File;
+import util.Packet;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,28 +63,23 @@ public class Node{
                 byte[] buf = new byte[1024];
                 DatagramPacket dp = new DatagramPacket(buf, buf.length);
                 receivingSocket.receive(dp);
-                String clock = new String(dp.getData(), 0, dp.getLength());
-                lamport.updateClock(Integer.parseInt(clock.charAt(clock.length()-1)+""));
-                System.out.println("Received");
-            } catch (IOException e){ }
+                Event receivedPacket = Packet.receivePacket(buf);
+                System.out.println(receivedPacket.getClock() + " received. Local Clock: " + lamport.getCounter());
+                lamport.updateClock(receivedPacket.getClock());
+                System.out.println("New lamport: " + lamport.getCounter());
+            } catch (IOException ignored){ }
         }
     }
 
     private void startProcessing(){
         if(ready){
             try {
-                if (id.equals("1")) {
-                    for (int i = 0; i < 5; i++) {
-                        String message = "ID: " + lamport.getId() + " Clock: " + lamport.getCounter();
-                        byte[] byteMessage = message.getBytes();
-                        DatagramPacket packet = new DatagramPacket(byteMessage,
-                                byteMessage.length,
-                                InetAddress.getByName(otherConfigs.get(0).getHost()),
-                                otherConfigs.get(0).getPort());
-                        sendingSocket.send(packet);
-                        System.out.println("Sending packet");
-                        Thread.sleep(getRandomLong(500, 1000));
-                    }
+                for (int i = 0; i < 5; i++) {
+                    Config randomConfig = File.getRandomConfigFromFile(otherConfigs, Integer.parseInt(id));
+                    DatagramPacket packet = Packet.createPacket(lamport, randomConfig);
+                    sendingSocket.send(packet);
+                    System.out.println("Sending packet");
+                    Thread.sleep(getRandomLong(500, 1000));
                 }
             }catch (IOException | InterruptedException e){ }
         }
