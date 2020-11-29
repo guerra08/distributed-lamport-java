@@ -15,9 +15,7 @@
 
     <com.meltmedia.jgroups.aws.AWS_PING
             port_number="7800"
-            tags="INSTANCE_TAG_NAMES"
-            access_key="AWS_ACCESS_KEY"
-            secret_key="AWS_SECRET_KEY"/>
+            tags="Name"/>
 
     <MERGE3  min_interval="10000"
              max_interval="30000"/>
