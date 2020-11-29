@@ -12,7 +12,6 @@ import util.PacketUtil;
 
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -27,14 +26,12 @@ public class Node{
     private DatagramSocket sendingSocket;
     private final Lamport lamport;
     private final int EVENT_COUNT = 100;
-    private final List<Event> events;
 
     public Node(String file, String id){
         this.id = id;
         this.config = new Config(Objects.requireNonNull(FileUtil.getConfig(file, id)));
         this.otherConfigs = ConfigFactory.buildOtherConfigsList(FileUtil.getAllConfigsFromFile(file), id);
         this.lamport = new Lamport(id);
-        this.events = new ArrayList<>();
     }
 
     public void start(){
@@ -43,7 +40,7 @@ public class Node{
             sendingSocket = new DatagramSocket();
             Thread t = new Thread(this::receivePackets);
             t.start();
-            JChannel channel = new JChannel("src/main/resources/jgroups.xml");
+            JChannel channel = new JChannel();
             channel.setReceiver(new Receiver(){
                 public void receive(Message msg){
                     channel.disconnect();
@@ -80,7 +77,7 @@ public class Node{
     private void startProcessing(){
         if(ready){
             try {
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < EVENT_COUNT; i++) {
                     if(isEventLocal()){
                         this.lamport.updateClockFromLocalEvent();
                         System.out.println(OutputUtil.generateLocalEventOutput(config.getId(), this.lamport.getCounter()));
