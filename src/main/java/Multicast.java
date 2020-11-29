@@ -6,7 +6,7 @@ public class Multicast{
     public void start(){
         try {
             Scanner sc = new Scanner(System.in);
-            JChannel channel = new JChannel();
+            JChannel channel = new JChannel("src/main/resources/jgroups.xml");
             channel.connect("prog-dist-cluster");
 
             System.out.println("Start distributed system: ");

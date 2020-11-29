@@ -24,6 +24,11 @@ dependencies {
     testImplementation(platform('org.junit:junit-bom:5.7.0'))
     testImplementation('org.junit.jupiter:junit-jupiter')
     compile group: 'org.jgroups', name: 'jgroups', version: '5.1.2.Final'
+    compile group: 'com.meltmedia.jgroups', name: 'jgroups-aws', version: '1.6.1'
+    // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    testCompile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.30'
+
 }
 
 test {
