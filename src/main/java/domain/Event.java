@@ -6,10 +6,12 @@ public class Event implements Serializable {
 
     private int clock;
     private String message;
+    private int creator;
 
-    public Event(int clock, String message) {
+    public Event(int clock, String message, int creator) {
         this.clock = clock;
         this.message = message;
+        this.creator = creator;
     }
 
     public int getClock() {
@@ -27,4 +29,8 @@ public class Event implements Serializable {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    public int getCreator() { return creator; }
+
+    public void setCreator(int creator) { this.creator = creator; }
 }

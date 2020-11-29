@@ -11,9 +11,9 @@ import java.net.InetAddress;
 public class PacketUtil {
 
 
-    public static DatagramPacket createPacket(Lamport lamp, Config config) {
+    public static DatagramPacket createPacket(Lamport lamp, Config config, Integer id) {
         try {
-            Event event = new Event(lamp.getCounter(), lamp.getId());
+            Event event = new Event(lamp.getCounter(), lamp.getId(), id);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutputStream os = new ObjectOutputStream(bos);
             os.writeObject(event);

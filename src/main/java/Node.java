@@ -7,6 +7,7 @@ import org.jgroups.Message;
 import org.jgroups.Receiver;
 import util.ConfigUtil;
 import util.FileUtil;
+import util.OutputUtil;
 import util.PacketUtil;
 
 import java.io.*;
@@ -65,9 +66,13 @@ public class Node{
                 DatagramPacket dp = new DatagramPacket(buf, buf.length);
                 receivingSocket.receive(dp);
                 Event receivedPacket = PacketUtil.packetBufferToEvent(buf);
-                System.out.println(receivedPacket.getClock() + " received. Local Clock: " + lamport.getCounter());
-                lamport.updateClock(receivedPacket.getClock());
-                System.out.println("New lamport: " + lamport.getCounter());
+                if(receivedPacket != null){
+                    lamport.updateClock(receivedPacket.getClock());
+                    System.out.println(OutputUtil.generateReceivedEventOutput(this.config.getId(),
+                            lamport.getCounter(),
+                            receivedPacket.getCreator(),
+                            receivedPacket.getClock()));
+                }
             } catch (IOException ignored){ }
         }
     }
@@ -75,18 +80,16 @@ public class Node{
     private void startProcessing(){
         if(ready){
             try {
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < 10; i++) {
                     if(isEventLocal()){
-                        events.add(new Event(this.lamport.getCounter(), "Local event"));
                         this.lamport.updateClockFromLocalEvent();
-                        System.out.println("Local event");
-                        System.out.println("New lamport: " + lamport.getCounter() + "\n");
+                        System.out.println(OutputUtil.generateLocalEventOutput(config.getId(), this.lamport.getCounter()));
                     }
                     else{
                         Config randomConfig = ConfigUtil.getRandomConfigFromList(otherConfigs, Integer.parseInt(id));
-                        DatagramPacket packet = PacketUtil.createPacket(lamport, randomConfig);
+                        DatagramPacket packet = PacketUtil.createPacket(lamport, randomConfig, this.config.getId());
                         sendingSocket.send(packet);
-                        System.out.println("Sending packet");
+                        System.out.println(OutputUtil.generateSendEventOutput(config.getId(), this.lamport.getCounter(), randomConfig.getId()));
                         Thread.sleep(getRandomLong());
                     }
                 }
