@@ -43,7 +43,7 @@ public class Node{
             sendingSocket = new DatagramSocket();
             Thread t = new Thread(this::receivePackets);
             t.start();
-            JChannel channel = new JChannel();
+            JChannel channel = new JChannel("src/main/resources/jgroups.xml");
             channel.setReceiver(new Receiver(){
                 public void receive(Message msg){
                     channel.disconnect();
