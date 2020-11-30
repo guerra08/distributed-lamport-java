@@ -64,7 +64,7 @@ public class Node{
                 receivingSocket.receive(dp);
                 Event receivedPacket = PacketUtil.packetBufferToEvent(buf);
                 if(receivedPacket != null){
-                    lamport.updateClock(receivedPacket.getClock());
+                    lamport.updateClock(receivedPacket.getClock(), false);
                     System.out.println(OutputUtil.generateReceivedEventOutput(this.config.getId(),
                             lamport.getCounter(),
                             receivedPacket.getCreator(),
@@ -78,7 +78,7 @@ public class Node{
         if(ready){
             try {
                 for (int i = 0; i < EVENT_COUNT; i++) {
-                    this.lamport.updateClock();
+                    this.lamport.updateClock(1, true);
                     if(isEventLocal()){
                         System.out.println(OutputUtil.generateLocalEventOutput(config.getId(), this.lamport.getCounter()));
                     }
