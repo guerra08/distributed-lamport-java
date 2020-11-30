@@ -78,8 +78,8 @@ public class Node{
         if(ready){
             try {
                 for (int i = 0; i < EVENT_COUNT; i++) {
+                    this.lamport.updateClock();
                     if(isEventLocal()){
-                        this.lamport.updateClockFromLocalEvent();
                         System.out.println(OutputUtil.generateLocalEventOutput(config.getId(), this.lamport.getCounter()));
                     }
                     else{

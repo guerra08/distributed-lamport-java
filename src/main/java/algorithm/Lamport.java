@@ -10,7 +10,7 @@ public class Lamport {
         this.counter = 0;
     }
 
-    public synchronized void updateClockFromLocalEvent() { this.counter++; }
+    public synchronized void updateClock() { this.counter++; }
 
     public synchronized void updateClock(int clock) { this.counter = Math.max(clock, counter) + 1; }
 
